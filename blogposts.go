@@ -2,8 +2,6 @@ package blogposts
 
 import (
   "io/fs"
-  "io"
-  post "github.com/turnerem/post"
 )
 
 // NewPostsFromFS is...

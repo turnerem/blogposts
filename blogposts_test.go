@@ -17,34 +17,29 @@ func (s StubFailingFS) Open(name string) (fs.File, error) {
 }
 
 func TestNewBlogPosts(t *testing.T) {
-  t.Run("all posts successfully extracted from fs", func(t *testing.T) {
-    fs := fstest.MapFS{
-      "hey.md": {Data: []byte("Title: Post 1")},
-      "ya.md": {Data: []byte("Title: Post 2")},
-    }
+  const (
+    firstBody = `Title: Post 1
+Description: Description 1`
+    secondBody = `Title: Post 2
+Description: Description 2`
+  )
 
-    posts, err := blogposts.NewPostsFromFS(fs)
+  fs := fstest.MapFS{
+    "hey.md": {Data: []byte(firstBody)},
+    "ya.md": {Data: []byte(secondBody)},
+  }
 
-    if err != nil {
-      t.Fatal(err)
-    }
+  posts, err := blogposts.NewPostsFromFS(fs)
 
-    assertPostLength(t, posts, fs)
+  if err != nil {
+    t.Fatal(err)
+  }
 
-    got := posts[0]
-    want := blogposts.Post{Title: "Post 1"}
+  assertPostLength(t, posts, fs)
 
-    if !reflect.DeepEqual(got, want) {
-      t.Errorf("got %+v want %+v", got, want)
-    }
-  })
-
-  t.Run("errors out is fs fails", func(t *testing.T) {
-    _, err := blogposts.NewPostsFromFS(StubFailingFS{})
-
-    if err == nil {
-      t.Errorf("Expected an error")
-    }
+  assertPost(t, posts[0], blogposts.Post{
+    Title:		"Post 1",
+    Description:	"Description 1",
   })
 }
 
@@ -53,5 +48,13 @@ func assertPostLength(t *testing.T, got []blogposts.Post, fs fstest.MapFS) {
 
   if len(got) != len(fs) {
     t.Errorf("got %d posts, want %d posts", len(got), len(fs))
+  }
+}
+
+func assertPost(t *testing.T, got blogposts.Post, want blogposts.Post) {
+  t.Helper()
+
+  if !reflect.DeepEqual(got, want) {
+    t.Errorf("got %+v want %+v", got, want)
   }
 }
